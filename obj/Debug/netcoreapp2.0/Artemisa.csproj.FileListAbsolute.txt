@@ -1,0 +1,11 @@
+/Users/diana/Documents/Development/Artemisa C#/obj/Debug/netcoreapp2.0/Artemisa.csprojAssemblyReference.cache
+/Users/diana/Documents/Development/Artemisa C#/obj/Debug/netcoreapp2.0/Artemisa.csproj.CoreCompileInputs.cache
+/Users/diana/Documents/Development/Artemisa C#/obj/Debug/netcoreapp2.0/Artemisa.AssemblyInfoInputs.cache
+/Users/diana/Documents/Development/Artemisa C#/obj/Debug/netcoreapp2.0/Artemisa.AssemblyInfo.cs
+/Users/diana/Documents/Development/Artemisa C#/bin/Debug/netcoreapp2.0/Artemisa.deps.json
+/Users/diana/Documents/Development/Artemisa C#/bin/Debug/netcoreapp2.0/Artemisa.runtimeconfig.json
+/Users/diana/Documents/Development/Artemisa C#/bin/Debug/netcoreapp2.0/Artemisa.runtimeconfig.dev.json
+/Users/diana/Documents/Development/Artemisa C#/bin/Debug/netcoreapp2.0/Artemisa.dll
+/Users/diana/Documents/Development/Artemisa C#/bin/Debug/netcoreapp2.0/Artemisa.pdb
+/Users/diana/Documents/Development/Artemisa C#/obj/Debug/netcoreapp2.0/Artemisa.dll
+/Users/diana/Documents/Development/Artemisa C#/obj/Debug/netcoreapp2.0/Artemisa.pdb

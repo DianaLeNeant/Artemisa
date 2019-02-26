@@ -1,0 +1,24 @@
+﻿Log [2019/02/26 14:14:45] <Artemisa - Startup> Directories check start.
+Log [2019/02/26 14:14:45] <Artemisa - Startup> Directories check finished.
+Log [2019/02/26 14:14:45] <Process> Server started at 192.168.1.108:3000
+Log [2019/02/26 14:14:49] <Process> Connection from 192.168.1.108:54125
+Log [2019/02/26 14:14:49] <Process> GET / HTTP/1.1
+Log [2019/02/26 14:14:49] <Process> Host: 192.168.1.108:3000
+Log [2019/02/26 14:14:49] <Process> Connection: keep-alive
+Log [2019/02/26 14:14:49] <Process> Cache-Control: max-age=0
+Log [2019/02/26 14:14:49] <Process> Upgrade-Insecure-Requests: 1
+Log [2019/02/26 14:14:49] <Process> User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/72.0.3626.119 Safari/537.36
+Log [2019/02/26 14:14:49] <Process> Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8
+Log [2019/02/26 14:14:49] <Process> Accept-Encoding: gzip, deflate
+Log [2019/02/26 14:14:49] <Process> Accept-Language: en-GB,en;q=0.9,es-MX;q=0.8,es;q=0.7,en-US;q=0.6
+Log [2019/02/26 14:14:49] <Process> Connection from 192.168.1.108:54126
+Log [2019/02/26 14:14:51] <Process> GET /favicon.ico HTTP/1.1
+Log [2019/02/26 14:14:51] <Process> Host: 192.168.1.108:3000
+Log [2019/02/26 14:14:51] <Process> Connection: keep-alive
+Log [2019/02/26 14:14:51] <Process> Pragma: no-cache
+Log [2019/02/26 14:14:51] <Process> Cache-Control: no-cache
+Log [2019/02/26 14:14:51] <Process> User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/72.0.3626.119 Safari/537.36
+Log [2019/02/26 14:14:51] <Process> Accept: image/webp,image/apng,image/*,*/*;q=0.8
+Log [2019/02/26 14:14:51] <Process> Referer: http://192.168.1.108:3000/
+Log [2019/02/26 14:14:51] <Process> Accept-Encoding: gzip, deflate
+Log [2019/02/26 14:14:51] <Process> Accept-Language: en-GB,en;q=0.9,es-MX;q=0.8,es;q=0.7,en-US;q=0.6

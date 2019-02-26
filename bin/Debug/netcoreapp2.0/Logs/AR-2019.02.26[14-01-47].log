@@ -1,0 +1,9 @@
+﻿Log [2019/02/26 14:01:47] <Artemisa - Startup> Directories check start.
+Log [2019/02/26 14:01:47] <Artemisa - Startup> Directories check finished.
+Log [2019/02/26 14:01:47] <Process> Server started at 192.168.1.108:3000
+Log [2019/02/26 14:02:06] <Process> Connection from 192.168.1.108:54009
+Log [2019/02/26 14:02:06] <Process> GET / HTTP/1.1
+Log [2019/02/26 14:02:06] <Process> Host: 192.168.1.108:3000
+Log [2019/02/26 14:02:06] <Process> Connection: keep-alive
+Log [2019/02/26 14:02:06] <Error> Unable to write data to the transport connection: Broken pipe.
+Log [2019/02/26 14:02:06] <Process> Connection from 192.168.1.108:54010
