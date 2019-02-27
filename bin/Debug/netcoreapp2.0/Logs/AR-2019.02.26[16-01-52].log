@@ -1,0 +1,9 @@
+﻿Log [2019/02/26 16:01:52] <Artemisa - Startup> Directories check start.
+Log [2019/02/26 16:01:52] <Artemisa - Startup> Directories check finished.
+Log [2019/02/26 16:01:53] <Process> Server started at 192.168.1.108:3000
+Log [2019/02/26 16:01:57] <Process> Connection from 192.168.1.108:55856
+Log [2019/02/26 16:01:57] <Error> Stream was not readable.
+Log [2019/02/26 16:01:57] <Process> Connection from 192.168.1.108:55857
+Log [2019/02/26 16:01:57] <Error> Stream was not readable.
+Log [2019/02/26 16:01:57] <Process> Connection from 192.168.1.108:55858
+Log [2019/02/26 16:01:57] <Error> Stream was not readable.

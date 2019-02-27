@@ -5,6 +5,9 @@ using System.Text;
 using System.IO;
 using System.Net;
 using System.Net.Sockets;
+using System.Net.Security;
+using System.Security.Authentication;
+using System.Security.Cryptography.X509Certificates;
 using System.Web;
 using System.Threading;
 using System.Threading.Tasks;
@@ -137,6 +140,8 @@ namespace Artemisa {
         };
         public readonly string defaultLogFile = DateTime.Now.ToString("AR-yyyy.MM.dd[HH-mm-ss]");
         public ServerOptions Options;
+
+        public X509Certificate serverCertificate = null;
 
         public struct WebResponse {
             private string _status;
@@ -283,10 +288,12 @@ namespace Artemisa {
         }
 
         private async Task acceptConnection(TcpClient client) {
-            NetworkStream stream = client.GetStream();
-            StreamReader reader = new StreamReader(stream);
-            
+            // NetworkStream stream = client.GetStream();
+            SslStream stream = new SslStream(client.GetStream());
+
             while (true) {
+                stream.AuthenticateAsServer(serverCertificate);
+                StreamReader reader = new StreamReader(stream);
                 string request = await reader.ReadLineAsync();
                 if (!String.IsNullOrEmpty(request)) {
                     StreamWriter writer = new StreamWriter(stream);
@@ -320,23 +327,12 @@ namespace Artemisa {
                 for (int x = 0; x < tmpSpl.Length; x++) {
                     par.Add(tmpSpl[x].Split('=', 2)[0], HttpUtility.HtmlDecode(tmpSpl[x].Split('=', 2)[1]));
                 }
-                
+
                 response = new WebResponse(instruction, 0, new WebResponse("instruction", 0, par));
 
                 writer.Write("HTTP/1.1 200 OK\r\n\r\n");
                 writer.Write(JsonConvert.SerializeObject(response, Formatting.Indented));
-            }
-                /*
-
-            if resource.EndsWith(".png") then
-                let bytes = File.ReadAllBytes(path)
-                writer.BinaryWrite(bytes) 
-            else
-                let text = File.ReadAllText(path)
-                writer.Write(text)
-
-                */
-                
+            }   
         }
     }
 }

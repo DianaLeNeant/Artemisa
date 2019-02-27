@@ -1,0 +1,14 @@
+﻿Log [2019/02/26 15:46:59] <Artemisa - Startup> Directories check start.
+Log [2019/02/26 15:47:00] <Artemisa - Startup> Certificate file not found.
+Log [2019/02/26 15:47:00] <Artemisa - Startup> Directories check finished.
+Log [2019/02/26 15:47:00] <Process> Server started at 192.168.1.108:3000
+Log [2019/02/26 15:47:19] <Process> Connection from 192.168.1.108:55596
+Log [2019/02/26 15:47:19] <Error> Stream was not readable.
+Log [2019/02/26 15:47:19] <Process> Connection from 192.168.1.108:55597
+Log [2019/02/26 15:47:19] <Error> Stream was not readable.
+Log [2019/02/26 15:47:29] <Process> Connection from 192.168.1.108:55603
+Log [2019/02/26 15:47:29] <Error> Stream was not readable.
+Log [2019/02/26 15:47:29] <Process> Connection from 192.168.1.108:55604
+Log [2019/02/26 15:47:30] <Error> Stream was not readable.
+Log [2019/02/26 15:47:30] <Process> Connection from 192.168.1.108:55605
+Log [2019/02/26 15:47:30] <Error> Stream was not readable.
