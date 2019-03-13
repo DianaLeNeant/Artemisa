@@ -9,3 +9,15 @@
 /Users/diana/Documents/Development/Artemisa C#/bin/Debug/netcoreapp2.0/Artemisa.pdb
 /Users/diana/Documents/Development/Artemisa C#/obj/Debug/netcoreapp2.0/Artemisa.dll
 /Users/diana/Documents/Development/Artemisa C#/obj/Debug/netcoreapp2.0/Artemisa.pdb
+C:\Users\Diana Celeste\Documents\Diana\Artemisa\obj\Debug\netcoreapp2.0\Artemisa.csproj.CoreCompileInputs.cache
+C:\Users\Diana Celeste\Documents\Diana\Artemisa\obj\Debug\netcoreapp2.0\Artemisa.AssemblyInfoInputs.cache
+C:\Users\Diana Celeste\Documents\Diana\Artemisa\obj\Debug\netcoreapp2.0\Artemisa.AssemblyInfo.cs
+C:\Users\Diana Celeste\Documents\Diana\Artemisa\obj\Debug\netcoreapp2.0\Artemisa.dll
+C:\Users\Diana Celeste\Documents\Diana\Artemisa\obj\Debug\netcoreapp2.0\Artemisa.pdb
+C:\Users\Diana Celeste\Documents\Diana\Artemisa\bin\Debug\netcoreapp2.0\Artemisa.deps.json
+C:\Users\Diana Celeste\Documents\Diana\Artemisa\bin\Debug\netcoreapp2.0\Artemisa.runtimeconfig.json
+C:\Users\Diana Celeste\Documents\Diana\Artemisa\bin\Debug\netcoreapp2.0\Artemisa.runtimeconfig.dev.json
+C:\Users\Diana Celeste\Documents\Diana\Artemisa\bin\Debug\netcoreapp2.0\Artemisa.dll
+C:\Users\Diana Celeste\Documents\Diana\Artemisa\bin\Debug\netcoreapp2.0\Artemisa.pdb
+C:\Users\Diana Celeste\Documents\Diana\Artemisa\obj\Debug\netcoreapp2.0\Artemisa.csprojResolveAssemblyReference.cache
+C:\Users\Diana Celeste\Documents\Diana\Artemisa\bin\Debug\netcoreapp2.0\System\Startup.dll

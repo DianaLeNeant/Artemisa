@@ -9,4 +9,8 @@
     <PackageReference Include="Newtonsoft.Json" Version="12.0.1" />
     <PackageReference Include="OpenSSL.X509Certificate2.Provider" Version="1.3.0" />
   </ItemGroup>
+  
+  <ItemGroup Condition="'$(Configuration)' == 'Debug'">
+    <None Update="System/*.dll" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
 </Project>

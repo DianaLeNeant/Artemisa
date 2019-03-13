@@ -14,12 +14,6 @@ namespace Artemisa
             } else {
                 Task.WaitAll(server.Listen());
             }
-            /*
-            string stdin = Console.ReadLine();
-            while (stdin != "exit") {
-                stdin = Console.ReadLine();
-            }
-            */
         }
     }
 }

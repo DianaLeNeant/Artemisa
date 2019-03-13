@@ -1,8 +1,0 @@
-﻿Log [2019/02/26 16:35:07] <Artemisa - Startup> Directories check start.
-Log [2019/02/26 16:35:08] <Artemisa - Startup> Directories check finished.
-Log [2019/02/26 16:35:09] <Process> Server started at 192.168.1.108:3000
-Log [2019/02/26 16:35:53] <Process> Connection from 192.168.1.108:56896
-Log [2019/02/26 16:35:53] <Error> The server mode SSL must use a certificate with the associated private key.
-Log [2019/02/26 16:35:53] <Process> Connection from 192.168.1.108:56897
-Log [2019/02/26 16:35:53] <Error> The server mode SSL must use a certificate with the associated private key.
-Log [2019/02/26 16:35:53] <Process> Connection from 192.168.1.108:56898

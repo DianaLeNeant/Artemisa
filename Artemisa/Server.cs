@@ -17,6 +17,10 @@ namespace Artemisa {
     public class ServerOptions {
         private Server parent;
         public string logFile;
+        public FileStream logStream;
+        public StreamWriter logWriter;
+        public TextWriter consoleOut;
+
         public int port;
         public string configFile;
 
@@ -63,6 +67,46 @@ namespace Artemisa {
             
             Modules.Add("Startup", new Module("Startup", from.localPath + "System/Startup.dll", Startup));
             Modules["Startup"].Reference.Parent = parent;
+        }
+
+        public bool setConsoleLogStream() {
+            if (logStream != null) if (logStream.CanWrite) return false;
+
+            consoleOut = Console.Out;
+            if (!Directory.Exists(parent.localPath + "Logs/")) Directory.CreateDirectory(parent.localPath + "Logs/");
+            
+            try {
+                logStream = new FileStream(parent.localPath + "Logs/" + logFile + ".log", FileMode.OpenOrCreate, FileAccess.Write);
+                logWriter = new StreamWriter(logStream);
+            } catch (System.Exception) {
+                return false;
+            }
+            
+            Console.SetOut(logWriter);
+            return true;
+        }
+        public bool setConsoleOutputStream() {
+            if (!logStream.CanWrite) return false;
+            
+            Console.SetOut(consoleOut);
+            logWriter.Close();
+            logStream.Close();
+            
+            return true;
+        }
+        public bool consoleInOut(Func<bool> middle) {
+            if (setConsoleLogStream()) {
+                try {
+                    middle();
+                    if (!setConsoleOutputStream()) return false;
+                    middle();
+                    return true;
+                } catch (System.Exception) {
+                    return false;
+                }
+            } else {
+                return false;
+            }
         }
 
         public bool AddModule(string name) {
@@ -173,6 +217,7 @@ namespace Artemisa {
 
         public string localPath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + "/";
 
+        #region Log
         public void log(string log, LogStatus status = LogStatus.Default) {
             string timeStamp = DateTime.Now.ToString("yyyy/MM/dd HH:mm:ss");
             string statusText = "Normal";
@@ -207,9 +252,7 @@ namespace Artemisa {
 
             colorWrite("Log [", simbolsColor); colorWrite(timeStamp, timeColor); colorWrite("] <", simbolsColor); colorWrite(statusText, statusColor); colorWrite("> ", simbolsColor);
             colorWrite(log + "\n", logColor);
-
-            if (!Directory.Exists(localPath + "Logs/")) Directory.CreateDirectory(localPath + "Logs/");
-            File.AppendAllTextAsync(localPath + "Logs/" + Options.logFile + ".log", "Log [" + timeStamp + "] <" + statusText + "> " + log + "\n", Encoding.UTF8);
+            //File.AppendAllText(localPath + "Logs/" + Options.logFile + ".log", "Log [" + timeStamp + "] <" + statusText + "> " + log + "\n", Encoding.UTF8);
         }
         public void log(string log, dynamic module) {
             if (Options.isModule(module)) {
@@ -224,27 +267,44 @@ namespace Artemisa {
                 colorWrite("Module [", simbolsColor); colorWrite(timeStamp, timeColor); colorWrite("] <", simbolsColor); colorWrite(statusText, statusColor); colorWrite("> ", simbolsColor);
                 colorWrite(log + "\n", logColor);
 
-                if (!Directory.Exists(localPath + "Logs/")) Directory.CreateDirectory(localPath + "Logs/");
-                File.AppendAllTextAsync(localPath + "Logs/" + Options.logFile + ".log", "Log [" + timeStamp + "] <" + statusText + "> " + log + "\n", Encoding.UTF8);
+                // if (!Directory.Exists(localPath + "Logs/")) Directory.CreateDirectory(localPath + "Logs/");
+                // File.AppendAllText(localPath + "Logs/" + Options.logFile + ".log", "Log [" + timeStamp + "] <" + statusText + "> " + log + "\n", Encoding.UTF8);
             }
         }
         private void colorWrite(string text, ConsoleColor color) {
             ConsoleColor prevFore = Console.ForegroundColor;
-            Console.ForegroundColor = color;
-            Console.Write(text);
-            Console.ForegroundColor = prevFore;
+
+            Options.consoleInOut(() => {
+                try
+                {
+                    Console.ForegroundColor = color;
+                    Console.Write(text);
+                    Console.ForegroundColor = prevFore;
+                    return true;
+                }
+                catch (System.Exception)
+                {
+                    return false;
+                }
+            });
         }
+        #endregion
 
         public Server(ServerOptions options) {
             Options = options;
         }
         public Server() {
-            ServerOptions defaultServerOptions = new ServerOptions(this);
-            defaultServerOptions.configFile = "Artemisa";
-            defaultServerOptions.logFile = defaultLogFile;
-            defaultServerOptions.port = 3000;
+            try {
+                ServerOptions defaultServerOptions = new ServerOptions(this);
 
-            Options = defaultServerOptions;
+                defaultServerOptions.configFile = "Artemisa";
+                defaultServerOptions.logFile = defaultLogFile;
+                defaultServerOptions.port = 3000;
+
+                Options = defaultServerOptions;
+            } catch (System.Exception) {
+                throw;
+            }
         }
 
         public bool Startup() {
@@ -288,21 +348,33 @@ namespace Artemisa {
         }
 
         private async Task acceptConnection(TcpClient client) {
-            // NetworkStream stream = client.GetStream();
-            SslStream stream = new SslStream(client.GetStream());
+            // NetworkStream stream = null;
+            // SslStream sstream = null;
+            dynamic stream = null;
+
+            if (Options.GetModule("Startup").certificateExists) {
+                stream = new SslStream(client.GetStream());
+                log("HTTPS mode.", LogStatus.Process);
+            } else {
+                stream = client.GetStream();
+                log("HTTP mode.", LogStatus.Process);
+            }
 
             while (true) {
-                stream.AuthenticateAsServer(serverCertificate);
-                StreamReader reader = new StreamReader(stream);
-                string request = await reader.ReadLineAsync();
-                if (!String.IsNullOrEmpty(request)) {
-                    StreamWriter writer = new StreamWriter(stream);
+                if (stream != null) {
+                    StreamReader reader = new StreamReader(stream);
+                    
+                    string request = await reader.ReadLineAsync();
+                    if (!String.IsNullOrEmpty(request)) {
+                        StreamWriter writer = new StreamWriter(stream);
+                        writer.AutoFlush = true;
 
-                    Handle(request, writer);
-
-                    writer.Flush();
+                        Handle(request, writer);
+                    } else {
+                        break;
+                    }
                 } else {
-                    break;
+                    log("Failed to initialize reading stream.", LogStatus.Error);
                 }
             }
             client.Close();
@@ -311,28 +383,40 @@ namespace Artemisa {
         private void Handle(string request, StreamWriter writer) {
             log(request, LogStatus.Process);
 
-            string[] parts = request.Split(' ');
-            string resource = parts[1];
+            string method = request.Split(' ')[0];
+            string resource = request.Split(' ')[1];
 
             string instruction;
+            string[] tmpSpl;
+
             Dictionary<string, string> par;
 
             WebResponse response;
+            string responseString;
 
-            if (parts[0] == "GET" || parts[0] == "POST") {
+            if (!resource.Contains("?")) {
+                instruction = resource;
+                tmpSpl = new string[] {};
+            } else {
                 instruction = resource.Split('?', 2)[0];
-                string[] tmpSpl = resource.Split('?', 2)[1].Split('&');
+                tmpSpl = resource.Split('?', 2)[1].Split('&');
+            }
 
-                par = new Dictionary<string, string>();
-                for (int x = 0; x < tmpSpl.Length; x++) {
-                    par.Add(tmpSpl[x].Split('=', 2)[0], HttpUtility.HtmlDecode(tmpSpl[x].Split('=', 2)[1]));
-                }
+            par = new Dictionary<string, string>();
+            for (int x = 0; x < tmpSpl.Length; x++) {
+                par.Add(tmpSpl[x].Split('=', 2)[0], HttpUtility.HtmlDecode(tmpSpl[x].Split('=', 2)[1]));
+            }
 
-                response = new WebResponse(instruction, 0, new WebResponse("instruction", 0, par));
+            switch (method) {
+                case "GET": case "POST":
+                    response = new WebResponse(instruction, 0, new WebResponse("instruction", 0, par));
+                    responseString = "HTTP/1.1 200 OK\r\n\r\n" + JsonConvert.SerializeObject(response, Formatting.Indented);
 
-                writer.Write("HTTP/1.1 200 OK\r\n\r\n");
-                writer.Write(JsonConvert.SerializeObject(response, Formatting.Indented));
-            }   
+                    log("Resolved: [\n" + responseString + "\n]", LogStatus.Success);
+
+                    writer.Write(responseString);
+                break;
+            }
         }
     }
 }
