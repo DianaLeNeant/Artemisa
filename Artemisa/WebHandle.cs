@@ -1,9 +1,19 @@
+using System;
+using System.Collections.Generic;
 using Newtonsoft.Json;
 
 namespace Artemisa {
     public static class WebHandle {
         public interface iWebRequest {
-
+            string Method {
+                get;
+            }
+            string Instrucion {
+                get;
+            }
+            Dictionary<string, string> Parameters {
+                get;
+            }
         }
         public struct WebResponse {
             private string _status;
@@ -38,6 +48,10 @@ namespace Artemisa {
                     "Connection: close" + "\r\n\r\n";
 
             return header + JsonConvert.SerializeObject(t, Formatting.Indented);
+        }
+
+        public static iWebRequest createRequest() {
+
         }
     }
 }
