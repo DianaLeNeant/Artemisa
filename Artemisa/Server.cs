@@ -11,15 +11,14 @@ using System.Security.Cryptography.X509Certificates;
 using System.Web;
 using System.Threading;
 using System.Threading.Tasks;
-using Newtonsoft.Json;
 
 namespace Artemisa {
+
     public class ServerOptions {
         private Server parent;
+
         public string logFile;
         public FileStream logStream;
-        public StreamWriter logWriter;
-        public TextWriter consoleOut;
 
         public int port;
         public string configFile;
@@ -52,7 +51,7 @@ namespace Artemisa {
         }
         public Dictionary<string, Module> Modules;
 
-        public ServerOptions(Server from) {
+        public ServerOptions(Server from, string logPath) {
             Modules = new Dictionary<string, Module>();
             if (!File.Exists(from.localPath + "System/Startup.dll")) {
                 from.log("Startup module not found.", Server.LogStatus.Error);
@@ -67,46 +66,9 @@ namespace Artemisa {
             
             Modules.Add("Startup", new Module("Startup", from.localPath + "System/Startup.dll", Startup));
             Modules["Startup"].Reference.Parent = parent;
-        }
 
-        public bool setConsoleLogStream() {
-            if (logStream != null) if (logStream.CanWrite) return false;
-
-            consoleOut = Console.Out;
-            if (!Directory.Exists(parent.localPath + "Logs/")) Directory.CreateDirectory(parent.localPath + "Logs/");
-            
-            try {
-                logStream = new FileStream(parent.localPath + "Logs/" + logFile + ".log", FileMode.OpenOrCreate, FileAccess.Write);
-                logWriter = new StreamWriter(logStream);
-            } catch (System.Exception) {
-                return false;
-            }
-            
-            Console.SetOut(logWriter);
-            return true;
-        }
-        public bool setConsoleOutputStream() {
-            if (!logStream.CanWrite) return false;
-            
-            Console.SetOut(consoleOut);
-            logWriter.Close();
-            logStream.Close();
-            
-            return true;
-        }
-        public bool consoleInOut(Func<bool> middle) {
-            if (setConsoleLogStream()) {
-                try {
-                    middle();
-                    if (!setConsoleOutputStream()) return false;
-                    middle();
-                    return true;
-                } catch (System.Exception) {
-                    return false;
-                }
-            } else {
-                return false;
-            }
+            logFile = logPath;
+            logStream = File.OpenWrite(logPath);
         }
 
         public bool AddModule(string name) {
@@ -126,8 +88,7 @@ namespace Artemisa {
                 Modules.Add(name, new Module(name, mPath, module));
                 Modules[name].Reference.Parent = parent;
                 return Modules[name].Reference.Load();
-            } catch (Exception e) {
-                parent.log("Error loading module " + name + ". {\n" + e.Message + "\n}");
+            } catch (Exception) {
                 return false;
             }
         }
@@ -174,7 +135,9 @@ namespace Artemisa {
             }
         }
     }
+    
     public class Server {
+    #region Definitions
         public enum LogStatus {
             Default,
             System,
@@ -182,49 +145,30 @@ namespace Artemisa {
             Success,
             Process
         };
-        public readonly string defaultLogFile = DateTime.Now.ToString("AR-yyyy.MM.dd[HH-mm-ss]");
+
+        public string localPath {
+            get {
+                return Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + "/";
+            }
+        }
+        public string defaultLogFile {
+            get {
+                return localPath + "/Logs/" + DateTime.Now.ToString("AR-yyyy.MM.dd[HH-mm-ss]") + ".log";
+            }
+        }
         public ServerOptions Options;
 
         public X509Certificate serverCertificate = null;
+    #endregion
 
-        public struct WebResponse {
-            private string _status;
-            private int _code;
-            private dynamic _response;
-
-            public string Status {
-                get {
-                    return _status;
-                }
-            }
-            public int Code {
-                get {
-                    return _code;
-                }
-            }
-            public dynamic Response {
-                get {
-                    return _response;
-                }
-            }
-
-            public WebResponse(string status, int code, dynamic response) {
-                _status = status;
-                _code = code;
-                _response = response;
-            }
-        }
-
-        public string localPath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + "/";
-
-        #region Log
-        public void log(string log, LogStatus status = LogStatus.Default) {
+    #region Log
+        private void log(string log, LogStatus status = LogStatus.Default) {
             string timeStamp = DateTime.Now.ToString("yyyy/MM/dd HH:mm:ss");
             string statusText = "Normal";
 
             ConsoleColor timeColor = ConsoleColor.Gray;
-            ConsoleColor statusColor = ConsoleColor.Green;
-            ConsoleColor logColor = ConsoleColor.White;
+            ConsoleColor statusColor = ConsoleColor.White;
+            ConsoleColor logColor = ConsoleColor.Gray;
             ConsoleColor simbolsColor = ConsoleColor.Blue;
 
             switch (status) {
@@ -236,12 +180,12 @@ namespace Artemisa {
                 case LogStatus.System:
                     statusText = "System";
                     statusColor = ConsoleColor.Blue;
-                    logColor = ConsoleColor.White;
+                    logColor = ConsoleColor.Gray;
                 break;
                 case LogStatus.Success:
                     statusText = "Success";
                     statusColor = ConsoleColor.Green;
-                    logColor = ConsoleColor.Green;
+                    logColor = ConsoleColor.White;
                 break;
                 case LogStatus.Process:
                     statusText = "Process";
@@ -250,55 +194,100 @@ namespace Artemisa {
                 break;
             }
 
-            colorWrite("Log [", simbolsColor); colorWrite(timeStamp, timeColor); colorWrite("] <", simbolsColor); colorWrite(statusText, statusColor); colorWrite("> ", simbolsColor);
-            colorWrite(log + "\n", logColor);
-            //File.AppendAllText(localPath + "Logs/" + Options.logFile + ".log", "Log [" + timeStamp + "] <" + statusText + "> " + log + "\n", Encoding.UTF8);
+            colorWrite("Log [", simbolsColor);
+            colorWrite(timeStamp, timeColor);
+            colorWrite("] <", simbolsColor);
+            colorWrite(statusText, statusColor);
+            colorWrite("> ", simbolsColor);
+            
+            beautyWrite(log + "\n", logColor);
         }
         public void log(string log, dynamic module) {
             if (Options.isModule(module)) {
                 string timeStamp = DateTime.Now.ToString("yyyy/MM/dd HH:mm:ss");
                 string statusText = module.ModuleName;
 
-                ConsoleColor timeColor = ConsoleColor.Gray;
+                ConsoleColor timeColor = ConsoleColor.Yellow;
                 ConsoleColor statusColor = ConsoleColor.Magenta;
                 ConsoleColor logColor = ConsoleColor.White;
                 ConsoleColor simbolsColor = ConsoleColor.Blue;
                 
-                colorWrite("Module [", simbolsColor); colorWrite(timeStamp, timeColor); colorWrite("] <", simbolsColor); colorWrite(statusText, statusColor); colorWrite("> ", simbolsColor);
-                colorWrite(log + "\n", logColor);
+                colorWrite("Module [", simbolsColor);
+                colorWrite(timeStamp, timeColor);
+                colorWrite("] <", simbolsColor);
+                colorWrite(statusText, statusColor);
+                colorWrite("> ", simbolsColor);
 
-                // if (!Directory.Exists(localPath + "Logs/")) Directory.CreateDirectory(localPath + "Logs/");
-                // File.AppendAllText(localPath + "Logs/" + Options.logFile + ".log", "Log [" + timeStamp + "] <" + statusText + "> " + log + "\n", Encoding.UTF8);
+                beautyWrite(log + "\n", logColor);
             }
         }
-        private void colorWrite(string text, ConsoleColor color) {
+        private void colorWrite(string text, ConsoleColor color, bool logOut = true) {
             ConsoleColor prevFore = Console.ForegroundColor;
 
-            Options.consoleInOut(() => {
-                try
-                {
-                    Console.ForegroundColor = color;
-                    Console.Write(text);
-                    Console.ForegroundColor = prevFore;
-                    return true;
-                }
-                catch (System.Exception)
-                {
-                    return false;
-                }
-            });
-        }
-        #endregion
+            Console.ForegroundColor = color;
+            Console.Write(text);
+            Console.ForegroundColor = prevFore;
 
+            if (logOut) Options.logStream.Write(new UTF8Encoding(true).GetBytes(text), 0, text.Length);
+        }
+        private void beautyWrite(string str, ConsoleColor defaultColor = ConsoleColor.White) {
+            for (int x = 0; x < str.Length; x++) {
+                char tc = str.ToCharArray()[x];
+                ConsoleColor c = defaultColor;
+
+                switch (tc)
+                {
+                    case '{':
+                        c = ConsoleColor.Magenta;
+                        colorWrite(tc.ToString(), c); x++; tc = str.ToCharArray()[x];
+                        while (tc != '}') {
+                            colorWrite(tc.ToString(), ConsoleColor.DarkMagenta);
+                            x++; tc = str.ToCharArray()[x];
+                        }
+                        colorWrite(tc.ToString(), c); continue;
+                    
+                    case '[':
+                        c = ConsoleColor.Cyan;
+                        colorWrite(tc.ToString(), c); x++; tc = str.ToCharArray()[x];
+                        while (tc != ']') {
+                            colorWrite(tc.ToString(), ConsoleColor.DarkCyan);
+                            x++; tc = str.ToCharArray()[x];
+                        }
+                        colorWrite(tc.ToString(), c); continue;
+                    
+                    case '\'':
+                        c = ConsoleColor.Yellow;
+                        colorWrite(tc.ToString(), c); x++; tc = str.ToCharArray()[x];
+                        while (tc != '\'') {
+                            colorWrite(tc.ToString(), ConsoleColor.Gray);
+                            x++; tc = str.ToCharArray()[x];
+                        }
+                        colorWrite(tc.ToString(), c); continue;
+
+                    case '.': case ',':
+                        c = ConsoleColor.DarkBlue;
+                        break;
+                }
+
+                int r;
+                if (Int32.TryParse(tc.ToString(), out r)) {
+                    colorWrite(tc.ToString(), ConsoleColor.Blue);
+                } else {
+                    colorWrite(tc.ToString(), c);
+                }
+            }
+        }
+    #endregion
+
+    #region Server startup
         public Server(ServerOptions options) {
             Options = options;
         }
         public Server() {
             try {
-                ServerOptions defaultServerOptions = new ServerOptions(this);
+                ServerOptions defaultServerOptions = new ServerOptions(this, defaultLogFile);
 
                 defaultServerOptions.configFile = "Artemisa";
-                defaultServerOptions.logFile = defaultLogFile;
                 defaultServerOptions.port = 3000;
 
                 Options = defaultServerOptions;
@@ -316,16 +305,17 @@ namespace Artemisa {
                 return false;
             }
         }
+    #endregion
 
+    #region Server listening
         public async Task Listen() {
-            string hostName = Dns.GetHostName();
-            IPHostEntry ipHostInfo = Dns.GetHostEntry(hostName);
+            IPHostEntry ipHostInfo = Dns.GetHostEntry("localhost"/* Dns.GetHostName() */);
             IPAddress ip = null;
-            
+
             for (int i = 0; i < ipHostInfo.AddressList.Length; ++i) {
                 if (ipHostInfo.AddressList[i].AddressFamily == AddressFamily.InterNetwork) {
                     ip = ipHostInfo.AddressList[i];
-                    break;
+                    //break;
                 }
             }
             if (ip == null) {
@@ -338,7 +328,9 @@ namespace Artemisa {
             while (true) {
                 try {
                     TcpClient client = await listener.AcceptTcpClientAsync();
-                    log("Connection from " + client.Client.RemoteEndPoint.ToString(), LogStatus.Process);
+                    string remoteIP = client.Client.RemoteEndPoint.ToString();
+
+                    log("Connection from " + remoteIP , LogStatus.Process);
                     Task t = acceptConnection(client);
                     await t;
                 } catch (Exception ex) {
@@ -346,52 +338,70 @@ namespace Artemisa {
                 }
             }
         }
-
         private async Task acceptConnection(TcpClient client) {
             // NetworkStream stream = null;
             // SslStream sstream = null;
             dynamic stream = null;
+            string remoteIPStr = "{" + client.Client.RemoteEndPoint.ToString() + "} ";
 
             if (Options.GetModule("Startup").certificateExists) {
                 stream = new SslStream(client.GetStream());
-                log("HTTPS mode.", LogStatus.Process);
+                //log("HTTPS mode.", LogStatus.Process);
             } else {
                 stream = client.GetStream();
-                log("HTTP mode.", LogStatus.Process);
+                //log("HTTP mode.", LogStatus.Process);
             }
 
             while (true) {
                 if (stream != null) {
+                    if (!stream.CanRead) break;
                     StreamReader reader = new StreamReader(stream);
-                    
-                    string request = await reader.ReadLineAsync();
-                    if (!String.IsNullOrEmpty(request)) {
-                        StreamWriter writer = new StreamWriter(stream);
-                        writer.AutoFlush = true;
 
-                        Handle(request, writer);
+                    if (!reader.EndOfStream) {
+                        string request;
+                        
+                        try {
+                            request = await reader.ReadLineAsync();
+                            log(remoteIPStr + request, LogStatus.Process);
+                        } catch (System.Exception) {
+                            break;
+                        }
+
+                        if (!String.IsNullOrEmpty(request)) {
+                            using (StreamWriter writer = new StreamWriter(stream)) {
+                                string response = Handle(request, writer);
+
+                                if (response != null) {
+                                    log(remoteIPStr + "Sent: [\n" + response + "\n]", LogStatus.Success);
+                                    writer.Write(response);
+                                } else {
+                                    log(remoteIPStr + "Invalid request", LogStatus.Error);
+                                    writer.Write(WebHandle.WebResponseStringify(new WebHandle.WebResponse(null, 404, null)));
+                                }
+                                writer.Flush();
+                            }
+                        } else {
+                            break;
+                        }
                     } else {
                         break;
                     }
                 } else {
-                    log("Failed to initialize reading stream.", LogStatus.Error);
+                    log(remoteIPStr + "Failed to initialize reading stream.", LogStatus.Error);
+                    break;
                 }
             }
             client.Close();
+            log(remoteIPStr + "Stream end.", LogStatus.Process);
         }
-
-        private void Handle(string request, StreamWriter writer) {
-            log(request, LogStatus.Process);
-
+        private String Handle(string request, StreamWriter writer) {
             string method = request.Split(' ')[0];
             string resource = request.Split(' ')[1];
 
             string instruction;
             string[] tmpSpl;
-
             Dictionary<string, string> par;
 
-            WebResponse response;
             string responseString;
 
             if (!resource.Contains("?")) {
@@ -409,14 +419,23 @@ namespace Artemisa {
 
             switch (method) {
                 case "GET": case "POST":
-                    response = new WebResponse(instruction, 0, new WebResponse("instruction", 0, par));
-                    responseString = "HTTP/1.1 200 OK\r\n\r\n" + JsonConvert.SerializeObject(response, Formatting.Indented);
+                    if (instruction == "/favicon.ico") { 
+                        //writer.Write("HTTP/1.1 404 NOT FOUND\r\n\r\n");
+                        return null;
+                    }
 
-                    log("Resolved: [\n" + responseString + "\n]", LogStatus.Success);
+                    
 
-                    writer.Write(responseString);
-                break;
+                    responseString = WebHandle.WebResponseStringify(new WebHandle.WebResponse(instruction, 200, new WebHandle.WebResponse("instruction", 0, par)));
+
+                    //writer.Write("HTTP/1.1 200 OK\r\n\r\n");
+                    return responseString;
+                default:
+                    //writer.Write("HTTP/1.1 404 NOT FOUND\r\n\r\n");
+                    return null;
             }
         }
+    #endregion
     }
+
 }
